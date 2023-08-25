@@ -39,10 +39,34 @@ async function run() {
       res.send(result);
     });
 
+    // get data by id
+    app.get("/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await hobbies_collections.findOne(query);
+      res.send(result);
+    });
     // creat hobbies list
     app.post("/hobbies", async (req, res) => {
       const data = req.body;
       const result = await hobbies_collections.insertOne(data);
+      res.send(result);
+    });
+
+    //update data
+    app.put("/hobbies/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const lists = req.body;
+      const updateDoc = {
+        $set: {
+          name: lists.name,
+          number: lists.number,
+          email: lists.email,
+          hobbies: lists.hobbies,
+        },
+      };
+      const result = await hobbies_collections.updateOne(filter, updateDoc);
       res.send(result);
     });
 
@@ -52,7 +76,6 @@ async function run() {
       const query = { _id: new ObjectId(id) };
       const result = await hobbies_collections.deleteOne(query);
       res.send(result);
-      console.log(id);
     });
 
     await client.db("admin").command({ ping: 1 });
