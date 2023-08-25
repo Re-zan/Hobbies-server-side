@@ -2,7 +2,7 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 const port = process.env.PORT || 5000;
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
 
 //middleware
@@ -23,16 +23,45 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
-    // Send a ping to confirm a successful connection
+    // await client.connect();
+    //start project
+    //collection
+    hobbies_collections = client
+      .db("hobbies-listDB")
+      .collection("hobbies-collection");
+
+    //get list
+    app.get("/hobbies", async (req, res) => {
+      const result = await hobbies_collections
+        .find()
+        .sort({ _id: -1 })
+        .toArray();
+      res.send(result);
+    });
+
+    // creat hobbies list
+    app.post("/hobbies", async (req, res) => {
+      const data = req.body;
+      const result = await hobbies_collections.insertOne(data);
+      res.send(result);
+    });
+
+    //delete data
+    app.delete("/hobbies/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await hobbies_collections.deleteOne(query);
+      res.send(result);
+      console.log(id);
+    });
+
     await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
   } finally {
     // Ensures that the client will close when you finish/error
-    await client.close();
+    // await client.close();
   }
 }
 run().catch(console.dir);
